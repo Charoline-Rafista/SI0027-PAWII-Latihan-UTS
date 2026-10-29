@@ -20,6 +20,13 @@ const MAX_LIMIT = 100;
 //   - data memuat kantinId yang ter-populate (objek Kantin)
 exports.getAll = async (req, res) => {
   // TODO B1
+  const{
+    kantinId,
+    sort = "createdAt",
+    page = 1,
+    limit = 10,
+    fields,
+  } = req.query;
 };
 
 // GET /menu/:id
