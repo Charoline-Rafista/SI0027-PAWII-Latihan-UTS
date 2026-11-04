@@ -131,3 +131,7 @@ Hasil Newman/Runner menandai test yang gagal; baca nama test-nya untuk menelusur
 
 - Latihan ini tidak dinilai. Kerjakan secara mandiri pada **fork** repositori ini di akun GitHub Anda.
 - Struktur folder dan nama file boleh ditambah, tetapi kontrak API di atas **tidak boleh diubah** karena dipakai oleh pengujian otomatis.
+
+## CATATAN PRIBADI :
+- URI MongoDB Atlas : mongodb+srv://admin:uts123@cluster0.jgasrpb.mongodb.net/latihan_kantin
+- URI MongoDB Lokal : mongodb://127.0.0.1:27017/latihan_kantin
