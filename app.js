@@ -13,15 +13,18 @@ const PORT = process.env.PORT || 3000;
 
 const kantinRoutes = require("./routes/kantinRoutes");
 // TODO C2: require route menu dari ./routes/menuRoutes
+const menuRoutes = require("./routes/menuRoutes");
 // TODO D2: require middleware errorHandler dari ./middlewares/errorHandler
+const errorHandler = require("./middlewares/errorHandler");
 
 app.use(cors());
 app.use(express.json());
 
 app.use("/kantin", kantinRoutes);
 // TODO C3: daftarkan route menu pada path "/menu"
-
+app.use("/menu", menuRoutes);
 // TODO D3: daftarkan errorHandler sebagai middleware PALING AKHIR (setelah semua route)
+app.use(errorHandler);
 
 mongoose
   .connect(process.env.MONGODB_URI)
@@ -35,3 +38,7 @@ mongoose
     console.error("Gagal terhubung ke MongoDB:", err.message);
     process.exit(1);
   });
+
+  // catatan:
+//   const dns = require("dns");
+// dns.setServers(["8.8.8.8", "8.8.4.4"]); // Memaksa Node.js menggunakan Google DNS

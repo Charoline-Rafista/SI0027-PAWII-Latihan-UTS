@@ -15,9 +15,11 @@
 // Petunjuk: lihat models/kantinModel.js sebagai contoh sintaks dasar,
 // dan materi Pertemuan 9-10 (embedding vs referencing).
 
+// Model Menu : embedded untuk bahan dan gizi, referencing untuk kantinId.
 const mongoose = require("mongoose");
 
 // TODO A1: buat schema subdocument gizi
+// subdocument gizi tidak membutuhkan _id tersendiri
 const giziSchema = new mongoose.Schema(
   {
     kalori: {

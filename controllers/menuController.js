@@ -18,6 +18,7 @@ const MAX_LIMIT = 100;
 // Respons 200: { data, page, limit, total }
 //   - total = jumlah dokumen yang cocok dengan filter (BUKAN jumlah data pada halaman ini)
 //   - data memuat kantinId yang ter-populate (objek Kantin)
+  
 exports.getAll = async (req, res) => {
   // TODO B1
   const{
@@ -27,6 +28,50 @@ exports.getAll = async (req, res) => {
     limit = 10,
     fields,
   } = req.query;
+
+  // validasi parameter numerik agar nilai page/limit tidak menghasilkan query aneh.
+  const currentPage = Number(page);
+  const requestedLimit = Number(limit);
+
+  if (!Number.isInteger(currentPage) || currentPage < 1) {
+    throw {status: 400, message:"Parameter page harus berupa bilangan bulat minimal 1" };
+  }
+
+  if (!Number.isInteger(requestedLimit) || requestedLimit < 1) {
+    throw {status: 400, message:"Parameter limit harus berupa bilangan bulat minimal 1" };
+  }
+
+  // Filtering: hanya mengambil menu milik kantin tertentu jika kantinId dikirim.
+  const filter = {};
+  if (kantinId) filter.kantinId = kantinId;
+
+  // Sorting: nama field dari query, ascending.
+  const sortOption = { [sort]: 1};
+
+  // Pagination: batasi maksimum 100 data per halaman.
+  const pageLimit = Math.min(requestedLimit, MAX_LIMIT);
+  const skip = (currentPage - 1) * pageLimit;
+
+  // Projection: pilih field sesuai daftar yang dipisahkan koma.
+  const query = Menu.find(filter).sort(sortOption).skip(skip).limit(pageLimit);
+  if(fields) query.select(fields.split(",").join(" "));
+
+  // Populate hanya jika kantinId tidak dikeluarkan oleh projection.
+  if (!fields || fields.split(",").includes("kantinId")) {
+    query.populate("kantinId");
+  }
+
+  const [data,total] = await Promise.all([
+    query,
+    Menu.countDocuments(filter),
+  ]);
+
+  res.status(200).json({
+    data,
+    page: currentPage,
+    limit: pageLimit,
+    total,
+  });
 };
 
 // GET /menu/:id
@@ -35,6 +80,13 @@ exports.getAll = async (req, res) => {
 //   - format id salah -> 400 (ditangani errorHandler lewat CastError)
 exports.getById = async (req, res) => {
   // TODO B2
+  const menu = await Menu.findById(req.params.id).populate("kantinId");
+
+  if (!menu) {
+    throw { status: 404, message: "Menu tidak ditemukan" };
+  }
+
+  res.status(200).json(menu);
 };
 
 // POST /menu
@@ -42,6 +94,8 @@ exports.getById = async (req, res) => {
 //   - validasi gagal / ISBN duplikat -> 400 (ditangani errorHandler)
 exports.create = async (req, res) => {
   // TODO B3
+  const menu = await Menu.create(req.body);
+  res.status(201).json(menu);
 };
 
 // PUT /menu/:id
@@ -50,6 +104,20 @@ exports.create = async (req, res) => {
 //   - tidak ada -> 404 { message }
 exports.update = async (req, res) => {
   // TODO B4
+  const menu = await Menu.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  if(!menu){
+    throw { status: 404, message: "Menu tidak ditemukan" };
+  }
+
+  res.status(200).json(menu);
 };
 
 // DELETE /menu/:id
@@ -57,4 +125,12 @@ exports.update = async (req, res) => {
 //   - tidak ada -> 404 { message }
 exports.remove = async (req, res) => {
   // TODO B5
+  const menu = await Menu.findByIdAndDelete(req.params.id);
+
+  if(!menu) {
+    throw { status: 404, message: "Menu tidak ditemukan"};
+  }
+
+  // HTTP 204 harus dikirim tanpa response body.
+  res.status(204).end();
 };
